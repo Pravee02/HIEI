@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import requests
 
-API_BASE = "http://127.0.0.1:5000/api"
+from utils.api import API_URL
+
+API_BASE = f"{API_URL}/api"
 
 def display_user_dashboard():
     # --- Custom CSS for FinTech Look ---

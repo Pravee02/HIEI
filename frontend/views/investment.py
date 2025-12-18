@@ -1,7 +1,9 @@
 import streamlit as st
 import requests
 
-API_BASE = "http://127.0.0.1:5000/api"
+from utils.api import API_URL
+
+API_BASE = f"{API_URL}/api"
 
 import random
 

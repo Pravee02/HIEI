@@ -1,7 +1,9 @@
 import streamlit as st
 import requests
 
-API_BASE = "http://127.0.0.1:5000/api"
+from utils.api import API_URL
+
+API_BASE = f"{API_URL}/api"
 
 # --- Debug / Admin Panel ---
 # --- Debug / Admin Panel ---
@@ -18,7 +20,7 @@ def display_debug_panel():
         
         if st.button("Check Backend Health"):
             try:
-                r = requests.get(f"http://127.0.0.1:5000/")
+                r = requests.get(f"{API_URL}/")
                 st.success(f"Backend Status: {r.status_code}")
             except Exception as e:
                 st.error(f"Backend Error: {e}")

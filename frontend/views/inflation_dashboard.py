@@ -3,7 +3,9 @@ import pandas as pd
 import plotly.express as px
 import requests
 
-API_BASE = "http://127.0.0.1:5000/api"
+from utils.api import API_URL
+
+API_BASE = f"{API_URL}/api"
 
 def display_inflation_dashboard():
     st.header("Global Inflation Forecast (5 Years)")
