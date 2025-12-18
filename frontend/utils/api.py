@@ -3,11 +3,18 @@ import streamlit as st
 
 import os
 
+
 # Try to get from st.secrets first (Streamlit Cloud), then os.getenv, then localhost default
 try:
     API_URL = st.secrets["API_URL"]
+    print(f"DEBUG: Using st.secrets: {API_URL}")
 except:
     API_URL = os.getenv("API_URL", "http://127.0.0.1:5000")
+    print(f"DEBUG: Using os.getenv/default: {API_URL}")
+
+# DEBUG: Temporarily show this on screen for user to verify
+# st.warning(f"DEBUG: Backend connected to: {API_URL}")
+
 
 def check_backend_status():
     try:
