@@ -1,7 +1,10 @@
 import streamlit as st
 import requests
 
-API_URL = "http://127.0.0.1:5000/api/auth"
+from utils.api import API_URL
+
+# Re-append /api/auth since the original variable included it
+AUTH_API_URL = f"{API_URL}/api/auth"
 
 def user_login():
     st.header("User Login")
@@ -9,7 +12,7 @@ def user_login():
     password = st.text_input("Password", type="password")
     if st.button("Login as User"):
         try:
-            res = requests.post(f"{API_URL}/login/user", json={"username": username, "password": password})
+            res = requests.post(f"{AUTH_API_URL}/login/user", json={"username": username, "password": password})
             if res.status_code == 200:
                 data = res.json()
                 st.session_state.user_token = data['token']
@@ -39,7 +42,7 @@ def user_register():
                 "address": address,
                 "household_group": household_group
             }
-            res = requests.post(f"{API_URL}/register/user", json=payload)
+            res = requests.post(f"{AUTH_API_URL}/register/user", json=payload)
             if res.status_code == 201:
                 st.success("Registration Successful! Please navigate to 'User Login' to continue.")
             else:
@@ -57,7 +60,7 @@ def policy_login():
     password = st.text_input("Password", type="password")
     if st.button("Login as Policy Maker"):
         try:
-            res = requests.post(f"{API_URL}/login/policy", json={"username": username, "password": password})
+            res = requests.post(f"{AUTH_API_URL}/login/policy", json={"username": username, "password": password})
             if res.status_code == 200:
                 data = res.json()
                 st.session_state.pm_token = data['token']
@@ -80,7 +83,7 @@ def policy_register():
     if st.button("Register Policy Maker"):
         try:
             payload = {"username": username, "password": password, "phone": phone, "policy_area": policy_area}
-            res = requests.post(f"{API_URL}/register/policy", json=payload)
+            res = requests.post(f"{AUTH_API_URL}/register/policy", json=payload)
             if res.status_code == 201:
                 st.success("Registration Successful! Please Login.")
             else:
