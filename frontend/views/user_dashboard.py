@@ -43,10 +43,27 @@ def display_user_dashboard():
             border-radius: 10px;
             padding: 20px;
             text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        .metric-label { font-size: 0.9rem; color: #8B949E; margin-bottom: 5px; }
-        .metric-value { font-size: 1.5rem; font-weight: 600; color: #FAFAFA; }
-        .metric-sub { font-size: 0.8rem; color: #58A6FF; margin-top: 5px; }
+        .metric-label { font-size: 0.9rem; color: #8B949E; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;}
+        .metric-value { font-size: 1.6rem; font-weight: 700; color: #FAFAFA; margin-bottom: 5px; }
+        .metric-sub { font-size: 0.85rem; color: #7D8590; line-height: 1.4; }
+        .metric-highlight { color: #58A6FF; font-weight: 500; }
+
+        /* Empty State Panel */
+        .empty-state-panel {
+            background-color: #161B22;
+            border: 1px dashed #30363D;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #8B949E;
+        }
+        .empty-state-title { font-size: 1.2rem; color: #FAFAFA; margin-bottom: 10px; font-weight: 600; }
+        .empty-state-text { font-size: 0.95rem; margin-bottom: 0; }
 
         /* Action Tiles */
         .action-tile {
@@ -55,32 +72,38 @@ def display_user_dashboard():
             border-radius: 8px;
             padding: 20px;
             text-align: center;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: all 0.2s ease;
             cursor: pointer;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .action-tile:hover {
             transform: translateY(-2px);
             border-color: #58A6FF;
+            background-color: #292E36;
         }
-        .action-icon { font-size: 2rem; margin-bottom: 10px; }
-        .action-text { color: #C9D1D9; font-weight: 500; text-decoration: none; }
+        .action-icon { font-size: 1.8rem; margin-bottom: 5px; }
+        .action-title { color: #FAFAFA; font-weight: 600; font-size: 1rem; }
+        .action-desc { color: #8B949E; font-size: 0.8rem; }
 
         /* Educational Strip */
         .edu-strip {
-            background-color: #1F2428; /* Slightly lighter/different tone */
+            background-color: #161B22; 
             border-left: 4px solid #A371F7; /* Purple accent */
-            padding: 15px 20px;
+            padding: 20px;
             border-radius: 4px;
             margin-top: 30px;
-            font-style: italic;
             color: #C9D1D9;
+            display: flex;
+            align-items: start;
+            gap: 15px;
         }
+        .edu-icon { font-size: 1.5rem; }
+        .edu-text { font-style: italic; font-size: 0.95rem; line-height: 1.5; }
         </style>
     """, unsafe_allow_html=True)
 
@@ -89,9 +112,9 @@ def display_user_dashboard():
     
     st.markdown(f"""
         <div class="dashboard-hero">
-            <div class="hero-title">Welcome back, {username}</div>
-            <div class="hero-subtitle">Monitor inflation impact, spending behavior, and financial readiness in one place.</div>
-            <div class="hero-status">Logged-in User | System Status: Active ●</div>
+            <div class="hero-title">Hello, {username} 👋</div>
+            <div class="hero-subtitle">Here is your financial overview and inflation impact analysis.</div>
+            <div class="hero-status">System Status: Active ●</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -101,7 +124,7 @@ def display_user_dashboard():
     last_savings = st.session_state.get('last_savings', 0)
     
     # Check History for Simulation Status
-    sim_status = "No Data"
+    sim_status = "No runs yet"
     history_count = 0
     history_data = [] # Store for later use
     
@@ -118,18 +141,26 @@ def display_user_dashboard():
 
     # Determine Readiness
     readiness = "Neutral 😐"
+    readiness_desc = "Not enough data to analyze."
     readiness_color = "#8B949E" # Grey
     
     if last_salary > 0:
         savings_rate = last_savings / last_salary
         if savings_rate < 0:
             readiness = "Alert ⚠️"
+            readiness_desc = "Spending exceeds income."
             readiness_color = "#EF553B" # Red
         elif savings_rate > 0.2:
             readiness = "Stable 🛡️"
+            readiness_desc = "Healthy savings buffer."
             readiness_color = "#00CC96" # Green
+        else:
+             readiness = "Caution ⚠️"
+             readiness_desc = "Savings are low."
+             readiness_color = "#E1AD01" # Orange
     elif history_count > 0:
          readiness = "Review Needed 📝"
+         readiness_desc = "Update your inputs."
 
     # Display Metrics Row
     c1, c2, c3, c4 = st.columns(4)
@@ -137,9 +168,9 @@ def display_user_dashboard():
     with c1:
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">Last Recorded Salary</div>
-                <div class="metric-value">{'₹' + str(last_salary) if last_salary > 0 else 'No data yet'}</div>
-                <div class="metric-sub">Monthly Income</div>
+                <div class="metric-label">Monthly Income</div>
+                <div class="metric-value">{'₹' + str(int(last_salary)) if last_salary > 0 else '—'}</div>
+                <div class="metric-sub">Based on your last input</div>
             </div>
         """, unsafe_allow_html=True)
     
@@ -148,18 +179,29 @@ def display_user_dashboard():
         estimated_spending = last_salary - last_savings if last_salary > 0 else 0
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">Est. Monthly Spending</div>
-                <div class="metric-value">{'₹' + str(estimated_spending) if last_salary > 0 else 'No data yet'}</div>
-                <div class="metric-sub">Based on Simulation</div>
+                <div class="metric-label">Est. Monthly Spend</div>
+                <div class="metric-value">{'₹' + str(int(estimated_spending)) if last_salary > 0 else '—'}</div>
+                <div class="metric-sub">Projected household expense</div>
             </div>
         """, unsafe_allow_html=True)
 
     with c3:
+        # Improved Simulation Status
+        if history_count > 0:
+            status_html = f"""
+                <div class="metric-value">{history_count}</div>
+                <div class="metric-sub">Total simulations run</div>
+            """
+        else:
+            status_html = """
+                <div class="metric-value" style="font-size: 1.2rem; color: #8B949E;">No simulations</div>
+                <div class="metric-sub">Run calculator to start</div>
+            """
+            
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">Simulation Status</div>
-                <div class="metric-value">{sim_status}</div>
-                <div class="metric-sub">{history_count} Runs recorded</div>
+                <div class="metric-label">Analysis History</div>
+                {status_html}
             </div>
         """, unsafe_allow_html=True)
 
@@ -167,20 +209,22 @@ def display_user_dashboard():
         st.markdown(f"""
             <div class="metric-card" style="border-bottom: 3px solid {readiness_color};">
                 <div class="metric-label">Financial Readiness</div>
-                <div class="metric-value" style="font-size: 1.2rem; color:{readiness_color}">{readiness}</div>
-                <div class="metric-sub">Indicator</div>
+                <div class="metric-value" style="font-size: 1.4rem; color:{readiness_color}">{readiness}</div>
+                <div class="metric-sub">{readiness_desc}</div>
             </div>
         """, unsafe_allow_html=True)
 
     st.markdown("---")
 
     # 3️⃣ Inflation Simulation Activity Panel
+    st.subheader("📊 Recent Activity")
     col_activity, col_actions = st.columns([2, 1])
     
     with col_activity:
-        st.subheader(" Recent Inflation Simulations")
-        
         if history_count > 0:
+            t1, t2 = st.columns([3, 1])
+            t1.caption("Showing your latest inflation impact calculations.")
+            
             # Show strictly relevant columns to keep it clean
             df = pd.DataFrame(history_data)
             # Rename for display if columns exist
@@ -188,8 +232,15 @@ def display_user_dashboard():
             final_cols = [c for c in display_cols if c in df.columns]
             
             if final_cols:
+                # Rename columns for friendly display
+                df_show = df[final_cols].rename(columns={
+                    'timestamp': 'Date',
+                    'monthly_income': 'Income', 
+                    'total_expenses': 'Expenses', 
+                    'inflation_rate': 'Inf. Rate'
+                })
                 st.dataframe(
-                    df[final_cols].style.format({"monthly_income": "₹{:.0f}", "total_expenses": "₹{:.0f}", "inflation_rate": "{:.1f}%"}),
+                    df_show.style.format({"Income": "₹{:.0f}", "Expenses": "₹{:.0f}", "Inf. Rate": "{:.1f}%"}),
                     use_container_width=True,
                     height=250,
                     hide_index=True
@@ -197,35 +248,33 @@ def display_user_dashboard():
             else:
                 st.dataframe(df, use_container_width=True, height=250)
         else:
-            # Empty State
-            st.info("You haven't run any inflation simulations yet.")
+            # Enhanced Empty State
             st.markdown("""
-                <div style="background-color: #161B22; padding: 20px; border-radius: 8px; text-align: center; border: 1px dashed #30363D;">
-                    <p style="color: #8B949E;">Start by calculating how inflation affects your household budget.</p>
+                <div class="empty-state-panel">
+                    <div class="empty-state-title">You haven’t analyzed inflation yet</div>
+                    <p class="empty-state-text">Start with the Inflation Calculator to see how future price rises will affect your specific household budget.</p>
                 </div>
             """, unsafe_allow_html=True)
 
     # 4️⃣ Action Shortcuts Section
     with col_actions:
-        st.subheader("⚡ Quick Actions")
-        
-        # Note: In Streamlit, buttons rerun the script. We'll use them to maybe set a hint or just be visual.
-        # Since we can't easily change the Sidebar Radio state from here without complex callback logic
-        # that might conflict with st.sidebar, we will make these "Navigational cues".
+        # Note: In Streamlit, buttons rerun the script. Visual cues only.
         
         g1, g2 = st.columns(2)
         with g1:
             st.markdown("""
             <div class="action-tile">
                 <div class="action-icon">➕</div>
-                <div class="action-text">Inflation<br>Calculator</div>
+                <div class="action-title">Calculator</div>
+                <div class="action-desc">Analyze future impact</div>
             </div>
             """, unsafe_allow_html=True)
         with g2:
              st.markdown("""
             <div class="action-tile">
                 <div class="action-icon">🏢</div>
-                <div class="action-text">Company<br>Analysis</div>
+                <div class="action-title">Analysis</div>
+                <div class="action-desc">Check companies</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -236,23 +285,29 @@ def display_user_dashboard():
              st.markdown("""
             <div class="action-tile">
                 <div class="action-icon">📉</div>
-                <div class="action-text">Inflation<br>Dashboard</div>
+                <div class="action-title">Dashboard</div>
+                <div class="action-desc">Forecast trends</div>
             </div>
             """, unsafe_allow_html=True)
         with g4:
              st.markdown("""
             <div class="action-tile">
                 <div class="action-icon">🛡️</div>
-                <div class="action-text">Insurance<br>Check</div>
+                <div class="action-title">Insurance</div>
+                <div class="action-desc">Review coverage</div>
             </div>
             """, unsafe_allow_html=True)
 
-        st.caption("Select from the sidebar menu to access these tools.")
+        st.caption("Select from the sidebar to access.")
 
     # 5️⃣ Educational Insight Strip
     st.markdown("""
         <div class="edu-strip">
-            💡 "Understanding inflation helps households plan spending, savings, and investment decisions more effectively."
+            <div class="edu-icon">💡</div>
+            <div class="edu-text">
+                "Understanding inflation helps households plan spending, savings, and investment decisions more effectively. 
+                Regularly checking your readiness score can prevent future financial stress."
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
