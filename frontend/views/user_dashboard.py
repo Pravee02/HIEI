@@ -185,25 +185,26 @@ def display_user_dashboard():
             </div>
         """, unsafe_allow_html=True)
 
+
     with c3:
         # Improved Simulation Status
         if history_count > 0:
-            status_html = f"""
-                <div class="metric-value">{history_count}</div>
-                <div class="metric-sub">Total simulations run</div>
-            """
+            val_text = f"{history_count}"
+            sub_text = "Total simulations run"
+            val_style = ""
         else:
-            status_html = """
-                <div class="metric-value" style="font-size: 1.2rem; color: #8B949E;">No simulations</div>
-                <div class="metric-sub">Run calculator to start</div>
-            """
+            val_text = "No simulations"
+            sub_text = "Run calculator to start"
+            val_style = "font-size: 1.2rem; color: #8B949E;"
             
         st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-label">Analysis History</div>
-                {status_html}
+                <div class="metric-value" style="{val_style}">{val_text}</div>
+                <div class="metric-sub">{sub_text}</div>
             </div>
         """, unsafe_allow_html=True)
+
 
     with c4:
         st.markdown(f"""
