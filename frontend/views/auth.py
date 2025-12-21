@@ -21,7 +21,11 @@ def user_login():
                 st.success("Login Successful!")
                 st.rerun()
             else:
-                st.error(res.json().get("error", "Login failed"))
+                try:
+                    err_msg = res.json().get("error", "Login failed")
+                except:
+                    err_msg = f"Error {res.status_code}: {res.text[:100]}"
+                st.error(err_msg)
         except Exception as e:
             st.error(f"Connection Error: {e}")
 
@@ -49,7 +53,7 @@ def user_register():
                 try:
                     err_msg = res.json().get("error", "Registration failed")
                 except:
-                    err_msg = f"Error {res.status_code}: {res.text}"
+                    err_msg = f"Error {res.status_code}: {res.text[:100]}"
                 st.error(err_msg)
         except Exception as e:
             st.error(f"Connection Error: {e}")

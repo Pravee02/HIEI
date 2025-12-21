@@ -23,11 +23,21 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(inflation_bp, url_prefix='/api/inflation')
 app.register_blueprint(data_bp, url_prefix='/api/data')
 
+# Ensure DB tables exist (Required for Render/Gunicorn)
+# Render Ephemeral Disk: SQLite will reset on deploy, but need to ensure path exists.
+db_file_path = os.path.join(basedir, 'hiei.db')
+print(f"Database Path: {db_file_path}")
+
+with app.app_context():
+    try:
+        db.create_all()
+        print("Database tables created successfully.")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
+
 @app.route('/')
 def home():
     return {"message": "HIEI Backend Running"}
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True, use_reloader=False, port=5000)

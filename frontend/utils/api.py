@@ -4,12 +4,18 @@ import streamlit as st
 import os
 
 
-
-# Check for API_URL in secrets (for hosted env), otherwise default to localhost (for local dev)
-if "API_URL" in st.secrets:
-    API_URL = st.secrets["API_URL"]
-else:
+# Smart API Status
+# Smart API Status
+# Prioritize Local Dev to avoid Secrets Error
+if os.name == 'nt':
     API_URL = "http://127.0.0.1:5000"
+else:
+    # Hosted / Linux
+    try:
+        url = st.secrets.get("API_URL", "https://hiei.onrender.com")
+        API_URL = url
+    except:
+        API_URL = "https://hiei.onrender.com"
 
 
 
