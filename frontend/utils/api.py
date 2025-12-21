@@ -5,8 +5,11 @@ import os
 
 
 
-# DEFAULT TO LOCAL URL FOR DEV
-API_URL = "http://127.0.0.1:5000"
+# Check for API_URL in secrets (for hosted env), otherwise default to localhost (for local dev)
+if "API_URL" in st.secrets:
+    API_URL = st.secrets["API_URL"]
+else:
+    API_URL = "http://127.0.0.1:5000"
 
 
 
