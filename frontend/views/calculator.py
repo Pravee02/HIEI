@@ -90,40 +90,55 @@ def display_calculator():
         savings_now = salary - total_now
         savings_fut = salary - total_fut
         
-        # Save to Session for Investment Page
-        st.session_state.last_savings = savings_fut
-        st.session_state.last_salary = salary
+        # Save to Session for Persistence
+        st.session_state.calc_results = {
+            "period_months": period_months,
+            "r_food": r_food, "f_food": f_food,
+            "r_fuel": r_fuel, "f_fuel": f_fuel,
+            "r_health": r_health, "f_health": f_health,
+            "extra_cost": extra_cost,
+            "total_now": total_now,
+            "total_fut": total_fut,
+            "savings_fut": savings_fut,
+            "salary": salary,
+            "food_spend": food_spend,
+            "fuel_spend": fuel_spend,
+            "health_spend": health_spend,
+            "extra_fixed": extra_fixed
+        }
+        
+    # --- DISPLAY RESULTS FROM STATE ---
+    if 'calc_results' in st.session_state:
+        res = st.session_state.calc_results
         
         # Display
         st.divider()
-        st.subheader(f"Results for {period_months} Months Forecast")
+        st.subheader(f"Results for {res['period_months']} Months Forecast")
         
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Food Inflation", f"{r_food:.2f}%", f"₹{int(f_food)}")
-        c2.metric("Fuel Inflation", f"{r_fuel:.2f}%", f"₹{int(f_fuel)}")
-        c3.metric("Health Inflation", f"{r_health:.2f}%", f"₹{int(f_health)}")
-        c4.metric("Extra Cost", f"₹{int(extra_cost)}", delta_color="inverse")
+        c1.metric("Food Inflation", f"{res['r_food']:.2f}%", f"₹{int(res['f_food'])}")
+        c2.metric("Fuel Inflation", f"{res['r_fuel']:.2f}%", f"₹{int(res['f_fuel'])}")
+        c3.metric("Health Inflation", f"{res['r_health']:.2f}%", f"₹{int(res['f_health'])}")
+        c4.metric("Extra Cost", f"₹{int(res['extra_cost'])}", delta_color="inverse")
         
-        st.write(f"**Total Future Monthly Spending:** ₹{int(total_fut)}")
+        st.write(f"**Total Future Monthly Spending:** ₹{int(res['total_fut'])}")
         
-        if savings_fut < 0:
-            status_color = "red"
+        salary_status = "Unknown"
+        if res['savings_fut'] < 0:
             salary_status = "DEFICIT"
-            st.error(f"⚠️ DANGER: You will be in debt by ₹{abs(int(savings_fut))}/month!")
-        elif savings_fut < 0.1 * salary:
-            status_color = "orange"
+            st.error(f"⚠️ DANGER: You will be in debt by ₹{abs(int(res['savings_fut']))}/month!")
+        elif res['savings_fut'] < 0.1 * res['salary']:
             salary_status = "AT RISK"
-            st.warning(f"⚠️ Warning: Savings will drop to low levels (₹{int(savings_fut)})")
+            st.warning(f"⚠️ Warning: Savings will drop to low levels (₹{int(res['savings_fut'])})")
         else:
-            status_color = "green"
             salary_status = "SURPLUS"
-            st.success(f"✅ Safe: Projected Savings ₹{int(savings_fut)}")
+            st.success(f"✅ Safe: Projected Savings ₹{int(res['savings_fut'])}")
             
         # Visualize
         chart_data = pd.DataFrame({
             "Category": ["Food", "Fuel", "Health", "Fixed"],
-            "Now": [food_spend, fuel_spend, health_spend, extra_fixed],
-            "Future": [f_food, f_fuel, f_health, extra_fixed]
+            "Now": [res['food_spend'], res['fuel_spend'], res['health_spend'], res['extra_fixed']],
+            "Future": [res['f_food'], res['f_fuel'], res['f_health'], res['extra_fixed']]
         })
         df_melt = chart_data.melt("Category", var_name="Time", value_name="Cost")
         fig = px.bar(df_melt, x="Category", y="Cost", color="Time", barmode="group",
@@ -131,32 +146,38 @@ def display_calculator():
         st.plotly_chart(fig, use_container_width=True)
         
         # Determine Most Affected
-        increases = {
-            "Food": f_food - food_spend,
-            "Fuel": f_fuel - fuel_spend,
-            "Healthcare": f_health - health_spend
+        item_increases = {
+            "Food": res['f_food'] - res['food_spend'],
+            "Fuel": res['f_fuel'] - res['fuel_spend'],
+            "Healthcare": res['f_health'] - res['health_spend']
         }
-        most_affected = max(increases, key=increases.get) if max(increases.values()) > 0 else "None"
+        most_affected = max(item_increases, key=item_increases.get) if max(item_increases.values()) > 0 else "None"
         
-        # Save Button
-        if st.button("Save Simulation"):
+        # Save Button (Now outside the main button logic)
+        if st.button("Save & Return to Dashboard"):
             payload = {
                 "user_id": st.session_state.user_id,
-                "salary": salary,
-                "food": food_spend,
-                "fuel": fuel_spend,
-                "health": health_spend,
-                "extra_spend": extra_fixed,
-                "total_spend": total_now,
-                "future_total_spend": total_fut,
+                "salary": res['salary'],
+                "food": res['food_spend'],
+                "fuel": res['fuel_spend'],
+                "health": res['health_spend'],
+                "extra_spend": res['extra_fixed'],
+                "total_spend": res['total_now'],
+                "future_total_spend": res['total_fut'],
                 "salary_status": salary_status,
                 "most_affected_category": most_affected
             }
+            success = False
             try:
                 s_res = requests.post(f"{API_BASE}/data/spending", json=payload)
                 if s_res.status_code == 201:
-                    st.success("Data Saved to Profile!")
+                    success = True
                 else:
                     st.error("Failed to save.")
-            except:
-                st.error("Connection failed.")
+            except Exception as e:
+                st.error(f"Connection failed: {e}")
+            
+            if success:
+                 st.success("Data Saved to Profile!")
+                 st.session_state.current_page = "User Dashboard"
+                 st.rerun()

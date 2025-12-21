@@ -3,193 +3,353 @@ from data.company_data import COMPANIES
 
 def display_company_analysis():
     # --- HEADER ---
-    st.title("📊 Educational Company Analysis")
     st.markdown("""
-    **Objective:** Learn about business models, strengths, and risks of India's leading companies.
-    
-    <div style="padding: 15px; border: 1px solid #ffcc00; border-radius: 8px; background-color: #332b00; color: #ffeb3b; margin-bottom: 20px;">
-        <strong>⚠️ IMPORTANT DISCLAIMER:</strong><br>
-        This analysis is for <strong>EDUCATIONAL PURPOSES ONLY</strong> and does not constitute financial advice.
-        Stock market investments are subject to market risks. Past performance does not guarantee future returns.
-        Users should consult a SEBI-registered financial advisor before making any investment decisions.
-        This platform does not recommend buying or selling any securities.
-    </div>
+        <div style="padding-bottom: 20px; border-bottom: 1px solid #30363D; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #FAFAFA; font-size: 2rem;">Company Analysis Guide</h2>
+            <p style="margin: 5px 0 0; color: #8B949E; font-size: 1rem;">
+                Simple, clear insights to help you understand what you are investing in.
+            </p>
+        </div>
     """, unsafe_allow_html=True)
     
     # --- SEARCH & SELECT ---
     company_names = ["Select a Company"] + [c['name'] for c in COMPANIES]
-    selected_name = st.selectbox("🔍 Search for a Company", company_names)
+    selected_name = st.selectbox("🔍 Select a Company to Study", company_names)
     
     if selected_name != "Select a Company":
-        # Find the company data
         comp = next(c for c in COMPANIES if c['name'] == selected_name)
         render_company_card(comp)
     else:
-        st.info("👈 Please select a company from the dropdown to view its analysis.")
+        st.info("👈 Please select a company from the dropdown to start learning.")
 
 def render_company_card(comp):
-    # CSS for cards
+    # --- CSS STYLING ---
     st.markdown("""
     <style>
-    .company-card { background-color: #1E232B; padding: 25px; border-radius: 12px; border: 1px solid #444; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-    .risk-badge-low { background-color: #0f3d0f; color: #4caf50; padding: 4px 12px; border-radius: 6px; font-weight:bold; border: 1px solid #4caf50; }
-    .risk-badge-med { background-color: #3d3d0f; color: #ffeb3b; padding: 4px 12px; border-radius: 6px; font-weight:bold; border: 1px solid #ffeb3b; }
-    .risk-badge-high { background-color: #3d0f0f; color: #ff5252; padding: 4px 12px; border-radius: 6px; font-weight:bold; border: 1px solid #ff5252; }
-    .section-head { color: #4DA6FF; font-size: 1.05em; font-weight: 600; margin-top: 25px; margin-bottom: 12px; border-left: 3px solid #4DA6FF; padding-left: 10px; text-transform:uppercase; letter-spacing:1px; }
-    .sub-head { color: #888; font-size: 0.85em; text-transform: uppercase; margin-top: 10px; margin-bottom: 5px; font-weight: 600; letter-spacing: 0.5px; }
-    .content-list { padding-left: 15px; color: #E0E0E0; font-size: 0.95em; line-height: 1.5; margin: 0; }
-    .content-list li { margin-bottom: 6px; }
-    .insight-label { color: #aaa; font-weight: 500; }
-    .insight-val { color: #fff; font-weight: 600; }
-    .glance-box { background-color:#252A33; padding:10px; border-radius:6px; text-align:center; border:1px solid #333; }
-    .glance-label { font-size:0.75em; color:#888; text-transform:uppercase; }
-    .glance-val { font-size:0.95em; color:#fff; font-weight:bold; margin-top:2px; }
+    .card-container { background-color: #161B22; padding: 25px; border-radius: 12px; border: 1px solid #30363D; margin-bottom: 25px; }
+    .section-title { font-size: 1.1rem; color: #4DA6FF; font-weight: 600; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* Overview Box */
+    .overview-box { background: linear-gradient(180deg, #1E232B 0%, #161B22 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #00CC96; }
+    .overview-text { color: #C9D1D9; font-size: 1rem; line-height: 1.6; }
+    
+    /* Property Grid */
+    .prop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+    .prop-card { background-color: #21262D; padding: 15px; border-radius: 8px; border: 1px solid #30363D; text-align: center; }
+    .prop-label { font-size: 0.8rem; color: #8B949E; text-transform: uppercase; margin-bottom: 5px; }
+    .prop-status { font-size: 1rem; color: #FAFAFA; font-weight: 600; margin-bottom: 5px; }
+    .prop-desc { font-size: 0.75rem; color: #6E7681; }
+    
+    /* Risk Cards */
+    .risk-card { background-color: #21262D; padding: 12px; border-radius: 6px; border-left: 3px solid #EF553B; margin-bottom: 10px; }
+    .risk-title { color: #FAFAFA; font-weight: 600; font-size: 0.95rem; }
+    .risk-level { float: right; font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; background: rgba(239, 85, 59, 0.2); color: #EF553B; }
+    
+    /* Suitability Box */
+    .suit-box { background-color: #1F242C; padding: 20px; border-radius: 8px; border: 1px dashed #4DA6FF; text-align: center; }
+    .checklist-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #30363D; }
     </style>
     """, unsafe_allow_html=True)
+
+    # 1️⃣ COMPANY OVERVIEW
+    st.markdown(f"### 🏢 {comp['name']} ({comp['ticker']})")
     
-    risk_class = "risk-badge-low" if "Low" in comp['risk'] else "risk-badge-med" if "Medium" in comp['risk'] else "risk-badge-high"
     snap = comp.get('snapshot', {})
+    financials = comp.get('dash_financials', {})
+    industry = comp.get('dash_industry', {})
     
-    # helper to render list
-    def render_list_items(items):
-        if isinstance(items, list):
-            return ''.join([f'<li>{i}</li>' for i in items])
-        return f'<li>{items}</li>'
+    # Parse business model for "How it makes money"
+    # Assuming list format: ['Revenue -> X', 'Model -> Y']
+    biz_model_text = "• " + "\n• ".join([bm.split('->')[1].strip() if '->' in bm else bm for bm in comp.get('business_model', [])[:3]])
 
-    # --- AT A GLANCE BAR ---
     st.markdown(f"""
-<div class="company-card">
-  <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom: 15px;">
-    <div>
-      <h1 style="margin:0; color:#4DA6FF; font-size: 2.2em;">{comp['name']}</h1>
-      <div style="font-size:1.1em; color:#aaa; margin-top:4px;">{comp['ticker']} | {comp['sector']}</div>
+    <div class="card-container">
+        <div class="section-title">Company Overview</div>
+        <div class="overview-box">
+            <div style="font-weight: 600; color: #FAFAFA; margin-bottom: 5px;">What does this company do?</div>
+            <div class="overview-text">{comp['overview']}</div>
+            <br>
+            <div style="font-weight: 600; color: #FAFAFA; margin-bottom: 5px;">Industry & Sector</div>
+            <div class="overview-text">{comp['sector']} - {industry.get('Growth', 'Growth')} Industry</div>
+            <br>
+            <div style="font-weight: 600; color: #FAFAFA; margin-bottom: 5px;">How does it make money?</div>
+            <div class="overview-text" style="white-space: pre-line;">{biz_model_text}</div>
+        </div>
     </div>
-    <span class="{risk_class}" style="font-size: 1em;">{comp['risk']} Risk</span>
-  </div>
+    """, unsafe_allow_html=True)
 
-  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:25px;">
-     <div class="glance-box"><div class="glance-label">Position</div><div class="glance-val">{snap.get('market_position','N/A')}</div></div>
-     <div class="glance-box"><div class="glance-label">Horizon</div><div class="glance-val">{snap.get('horizon','N/A')}</div></div>
-     <div class="glance-box"><div class="glance-label">Volatility</div><div class="glance-val">{snap.get('volatility','N/A')}</div></div>
-     <div class="glance-box"><div class="glance-label">Style</div><div class="glance-val" style="color:#00CC96;">{snap.get('style','N/A')}</div></div>
-  </div>
-""", unsafe_allow_html=True)
-
-    # --- GROWTH CHART (CONCEPTUAL) ---
-    st.markdown('<div class="sub-head">📈 Conceptual Growth Trajectory (Past -> Future)</div>', unsafe_allow_html=True)
+    # 2️⃣ CORE COMPANY PROPERTIES
+    # Mapping Logic
+    # Business Strength: Snapshot 'market_position'
+    # Industry Stability: Ind Context 'Cyclicality' or snapshot 'style'
+    # Revenue Trend: dash_financials 'Rev Trend'
+    # Profitability: dash_financials 'Profit Stability'
+    # Debt Level: dash_financials 'Debt Comfort'
+    # Cash Flow: dash_financials 'Cash Flow'
     
-    # Generate synthetic chart data using standard python (No heavy pandas/numpy)
+    st.markdown("""
+    <div class="card-container">
+        <div class="section-title">Core Business Properties</div>
+        <div class="prop-grid">
+            <div class="prop-card">
+                <div class="prop-label">Business Strength</div>
+                <div class="prop-status" style="color: #00CC96;">{0}</div>
+                <div class="prop-desc">Market Position</div>
+            </div>
+            <div class="prop-card">
+                <div class="prop-label">Industry Stability</div>
+                <div class="prop-status" style="color: #E1AD01;">{1}</div>
+                <div class="prop-desc">{2}</div>
+            </div>
+            <div class="prop-card">
+                <div class="prop-label">Revenue Trend</div>
+                <div class="prop-status" style="color: #00CC96;">{3}</div>
+                <div class="prop-desc">Sales Growth</div>
+            </div>
+            <div class="prop-card">
+                <div class="prop-label">Profitability</div>
+                <div class="prop-status" style="color: #00CC96;">{4}</div>
+                <div class="prop-desc">Consistency</div>
+            </div>
+            <div class="prop-card">
+                <div class="prop-label">Debt Level</div>
+                <div class="prop-status" style="color: {5};">{6}</div>
+                <div class="prop-desc">Balance Sheet</div>
+            </div>
+            <div class="prop-card">
+                <div class="prop-label">Cash Flow Health</div>
+                <div class="prop-status" style="color: {7};">{8}</div>
+                <div class="prop-desc">Operational Cash</div>
+            </div>
+        </div>
+    </div>
+    """.format(
+        snap.get('market_position', 'Strong'), # 0
+        snap.get('style', 'Stable'), # 1
+        industry.get('Cyclicality', 'Moderate'), # 2
+        financials.get('Rev Trend', 'Growing').replace("↑", "").replace("→", "").strip(), # 3
+        financials.get('Profit Stability', 'Stable').replace("✔", "").replace("→", "").strip(), # 4
+        "#00CC96" if "Zero" in financials.get('Debt Comfort', '') or "Low" in financials.get('Debt Comfort', '') or "N/A" in financials.get('Debt Comfort', '') else "#EF553B", # 5 (Color)
+        financials.get('Debt Comfort', 'Manageable').replace("✔", "").replace("→", "").strip(), # 6
+        "#00CC96" if "Positive" in financials.get('Cash Flow', '') or "Robust" in financials.get('Cash Flow', '') else "#E1AD01", # 7 (Color)
+        financials.get('Cash Flow', 'Positive').replace("✔", "").replace("→", "").strip() # 8
+    ), unsafe_allow_html=True)
+    
+    # 🚨 NEW: COMPANY GROWTH DASHBOARD
+    st.markdown("""
+    <div class="card-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div class="section-title" style="margin-bottom: 0;">🚀 Company Growth Dashboard</div>
+            <div style="background-color: #21262D; border: 1px solid #30363D; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; color: #8B949E;">
+                ℹ️ <strong>How to read:</strong> Shows if growth is steady (safe) or wavy (risky).
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Growth Indicators Logic
+    rev_trend_raw = financials.get('Rev Trend', 'Steady')
+    # Determine revenue arrows
+    if 'Rising' in rev_trend_raw or 'Strong' in rev_trend_raw or 'Rapid' in rev_trend_raw:
+        rev_icon = "↗️"
+        rev_status = "Increasing"
+        rev_desc = "Sales are going up."
+    elif 'Slow' in rev_trend_raw or 'Stable' in rev_trend_raw or 'Consistent' in rev_trend_raw:
+        rev_icon = "➡️"
+        rev_status = "Stable"
+        rev_desc = "Sales are steady."
+    else:
+        rev_icon = "↘️"
+        rev_status = "Declining"
+        rev_desc = "Sales are facing pressure."
+
+    # Profit Logic
+    prof_trend_raw = financials.get('Profit Stability', 'Stable')
+    if 'High' in prof_trend_raw or 'Rising' in prof_trend_raw or 'Strong' in prof_trend_raw:
+        prof_icon = "✅"
+        prof_status = "Strong"
+        prof_desc = "Profits are healthy."
+    elif 'Volatile' in prof_trend_raw:
+        prof_icon = "⚠️"
+        prof_status = "Volatile"
+        prof_desc = "Profits go up and down."
+    else:
+        prof_icon = "🔹"
+        prof_status = "Consistent"
+        prof_desc = "Profits are predictable."
+
+    # Expansion Logic (Simulated from Outlook)
+    outlook_drive = comp.get('dash_outlook', {}).get('Driver', '')
+    if 'Growth' in outlook_drive or 'Expansion' in outlook_drive or 'Transformation' in outlook_drive:
+        exp_icon = "🌍"
+        exp_status = "Expanding"
+        exp_desc = "Investing in new areas."
+    else:
+        exp_icon = "🔒"
+        exp_status = "Steady"
+        exp_desc = "Focusing on core business."
+
+    # 1️⃣ Growth Overview Cards (Grid)
+    st.markdown(f"""
+        <div class="prop-grid" style="margin-top: 0; margin-bottom: 20px;">
+            <div class="prop-card" style="background-color: #1F242C; border: 1px dashed #444;">
+                <div class="prop-label">Revenue Growth</div>
+                <div class="prop-status" style="color: #FAFAFA;">{rev_icon} {rev_status}</div>
+                <div class="prop-desc">{rev_desc}</div>
+            </div>
+            <div class="prop-card" style="background-color: #1F242C; border: 1px dashed #444;">
+                <div class="prop-label">Profit Growth</div>
+                <div class="prop-status" style="color: #FAFAFA;">{prof_icon} {prof_status}</div>
+                <div class="prop-desc">{prof_desc}</div>
+            </div>
+            <div class="prop-card" style="background-color: #1F242C; border: 1px dashed #444;">
+                <div class="prop-label">Business Expansion</div>
+                <div class="prop-status" style="color: #FAFAFA;">{exp_icon} {exp_status}</div>
+                <div class="prop-desc">{exp_desc}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # 2️⃣ Growth Trend Visualization (Chart)
+    st.markdown('<div class="prop-label" style="text-align: left; margin-bottom: 10px;">📈 Growth Trend (Visualized)</div>', unsafe_allow_html=True)
+    
+    # Re-using the conceptual chart logic but making it cleaner/embedded
     import math
     import random
-    
     archetype = comp.get('growth_archetype', 'Steady')
-    points = 50
-    data_values = []
-    
+    points = 30
+    chart_data = []
+    base_val = 100
     for i in range(points):
-        x = i / 5.0 # 0 to 10 scale
-        if archetype == 'Compounder':
-            # Steady Exponential
-            val = 100 * (1.15 ** x) + random.uniform(-2, 2)
-        elif archetype == 'Cyclical':
-            # Sine wave + trend
-            val = 100 + (10 * x) + (20 * math.sin(x))
-        elif archetype == 'Defensive':
-            # Slow steady
-            val = 100 * (1.08 ** x)
-        elif archetype == 'FastGrowth':
-            # High growth
-            val = 100 * (1.25 ** x) + random.uniform(-5, 5)
-        else: # Turnaround/Volatile
-            val = 100 + (5 * x) + random.uniform(-15, 15)
-        data_values.append(val)
+        x = i / 3.0
+        if archetype == 'Compounder': val = base_val * (1.12 ** x) + random.uniform(-1, 1)
+        elif archetype == 'Cyclical': val = base_val + (8 * x) + (15 * math.sin(x))
+        elif archetype == 'Defensive': val = base_val * (1.05 ** x)
+        elif archetype == 'FastGrowth': val = base_val * (1.20 ** x) + random.uniform(-3, 3)
+        else: val = base_val + (3 * x) + random.uniform(-10, 10)
+        chart_data.append(val)
         
-    st.line_chart(data_values, height=200, use_container_width=True)
-    st.caption("Note: Chart is completely conceptual to visualize the *nature* of growth, not actual price data.")
+    st.line_chart(chart_data, height=150, use_container_width=True)
+    
+    # 3️⃣ Growth Stability Indicator
+    stability = "High Stability" if archetype in ['Compounder', 'Defensive'] else "Medium Stability" if archetype == 'FastGrowth' else "Low Stability (Cyclical)"
+    st.markdown(f"""
+        <div style="background-color: #21262D; border-top: 1px solid #30363D; padding-top: 15px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span class="prop-label">Growth Stability:</span>
+                <span style="color: #FAFAFA; font-weight: 600; margin-left: 5px;">{stability}</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #6E7681;">Based on historical track record.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    # END GROWTH DASHBOARD
 
+    # 3️⃣ RISK SUMMARY & 4️⃣ MANAGEMENT (Two Columns)
+    col_risk, col_mgmt = st.columns(2)
+    
+    with col_risk:
+        st.markdown('<div class="section-title">⚠️ Risk Summary</div>', unsafe_allow_html=True)
+        risks = comp.get('dash_risks', [])
+        risk_html = ""
+        for r in risks:
+            risk_html += f"""
+            <div class="risk-card">
+                <span class="risk-title">{r['name']}</span>
+                <span class="risk-level">{r['level']}</span>
+            </div>
+            """
+        st.markdown(risk_html, unsafe_allow_html=True)
+        
+    with col_mgmt:
+        st.markdown('<div class="section-title">🏆 Management & Stability</div>', unsafe_allow_html=True)
+        mgmt = comp.get('dash_outlook', {}).get('Management', 'Professional')
+        perf = comp.get('performance', 'Stable track record.')
+        st.markdown(f"""
+        <div style="background-color: #21262D; padding: 15px; border-radius: 8px; height: 100%;">
+            <div style="margin-bottom: 10px;">
+                <span style="color: #8B949E; font-size: 0.85rem;">Management Quality</span><br>
+                <span style="color: #FAFAFA; font-weight: 600;">{mgmt.replace('✔','').strip()}</span>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <span style="color: #8B949E; font-size: 0.85rem;">Track Record</span><br>
+                <span style="color: #FAFAFA; font-size: 0.95rem;">{perf}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
+    # 5️⃣ INVESTMENT SUITABILITY SUMMARY
+    st.markdown("---")
+    
+    # Logic for Classification (Simulated based on existing data properties)
+    # Large Cap: Leader market position + Low/Med Risk
+    is_large_cap = "Leader" in snap.get('market_position', '') or "Dominant" in comp['overview']
+    # Mid Cap: Challenger or Growth style + Med Risk (simplified logic)
+    is_mid_cap = "Challenger" in snap.get('market_position', '') or "Med" in comp.get('risk', '')
+    # Small Cap: High Risk or specific mention (Default False for these major companies)
+    is_small_cap = "High" in comp.get('risk', '')
+    # Startup: specific mention (Default False for listed giants)
+    is_startup = False 
 
-    # --- HELPER: INSIGHT TILES ---
-    def render_kv_tile(label, val, indicator=None):
-        val_color = "#4caf50" if "High" in val or "Strong" in val else "#ff5252" if "Low" in val or "Weak" in val else "#fff"
+    def render_suitablity_row(label, is_yes, description):
+        badge_color = "#2bbb5b" if is_yes else "#ef553b" # Green vs Red
+        badge_text = "YES" if is_yes else "NO"
         return f"""
-        <div style="background:#2A2F38; padding:10px; border-radius:6px; margin-bottom:8px; border-left:2px solid #555;">
-            <div style="font-size:0.75em; color:#aaa; text-transform:uppercase;">{label}</div>
-            <div style="font-size:0.95em; color:{val_color}; font-weight:600;">{val}</div>
+        <div class="checklist-row" style="align-items: center;">
+            <div style="flex: 1; color: #C9D1D9; font-weight: 500;">{label}</div>
+            <div style="flex: 2; color: #8B949E; font-size: 0.9rem;">{description}</div>
+            <div style="background-color: {badge_color}; color: #fff; padding: 2px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;">{badge_text}</div>
         </div>
         """
 
-    def render_risk_chip(r):
-        color = "#3d0f0f" if "High" in r['level'] else "#3d3d0f" if "Med" in r['level'] else "#1E232B"
-        text_color = "#ff5252" if "High" in r['level'] else "#ffeb3b"
-        return f'<span style="background:{color}; color:{text_color}; padding:4px 8px; border-radius:4px; font-size:0.8em; margin-right:5px; border:1px solid {text_color}; display:inline-block; margin-bottom:5px;">{r["name"]}</span>'
+    st.markdown("""
+    <div class="card-container">
+        <div class="section-title" style="color: #FAFAFA; border-bottom: none;">🎯 Investment Suitability Summary</div>
+        <p style="color: #8B949E; font-size: 0.9rem; margin-top: -10px; margin-bottom: 20px;">
+            Quick classification to help you decide if this matches your profile.
+        </p>
+    """, unsafe_allow_html=True)
 
-    # --- TILE GRID LAYOUT ---
-    c1, c2, c3 = st.columns(3)
+    st.markdown(render_suitablity_row(
+        "Large-Cap Investment", 
+        is_large_cap, 
+        "Stable, established market leaders."
+    ), unsafe_allow_html=True)
     
-    with c1:
-        st.markdown('<div class="section-head">🏢 Business Model</div>', unsafe_allow_html=True)
-        bus = comp.get('dash_business', {})
-        st.markdown(render_kv_tile("Revenue Source", bus.get('Source', 'N/A')), unsafe_allow_html=True)
-        st.markdown(render_kv_tile("Customer Base", bus.get('Customer', 'N/A')), unsafe_allow_html=True)
-        st.markdown(render_kv_tile("Scalability", bus.get('Scalability', 'N/A')), unsafe_allow_html=True)
+    st.markdown(render_suitablity_row(
+        "Mid-Cap Investment", 
+        is_mid_cap and not is_large_cap, 
+        "Higher growth potential, moderate risk."
+    ), unsafe_allow_html=True)
 
-        st.markdown('<div class="section-head">⚡ Risk Radar</div>', unsafe_allow_html=True)
-        risks = comp.get('dash_risks', [])
-        st.markdown("".join([render_risk_chip(r) for r in risks]), unsafe_allow_html=True)
+    st.markdown(render_suitablity_row(
+        "Small-Cap Investment", 
+        is_small_cap, 
+        "High risk, high volatility."
+    ), unsafe_allow_html=True)
 
-    with c2:
-        st.markdown('<div class="section-head">🌍 Industry Context</div>', unsafe_allow_html=True)
-        ind = comp.get('dash_industry', {})
-        st.markdown(render_kv_tile("Sector Growth", ind.get('Growth', 'N/A')), unsafe_allow_html=True)
-        st.markdown(render_kv_tile("Competition", ind.get('Competition', 'N/A')), unsafe_allow_html=True)
-        st.markdown(render_kv_tile("Cyclicality", ind.get('Cyclicality', 'N/A')), unsafe_allow_html=True)
+    st.markdown(render_suitablity_row(
+        "Startup Category", 
+        is_startup, 
+        "Early stage, very high risk."
+    ), unsafe_allow_html=True)
 
-        st.markdown('<div class="section-head">🏰 Moat</div>', unsafe_allow_html=True)
-        for m in comp.get('dash_moat', []):
-            st.markdown(f'<span style="background:#0f3d0f; color:#4caf50; padding:2px 8px; border-radius:12px; font-size:0.8em; margin-right:4px; border:1px solid #4caf50;">{m}</span>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
+    # 6️⃣ DECISION HELPER (Checklist)
+    st.markdown("### ✅ Decision Helper Checklist")
+    checklist = comp.get('checklist_expanded', [])
+    
+    for item in checklist:
+        is_pos = item['status'] in ['Yes', 'Strong', 'Wide', 'Up', 'High']
+        icon = "✔" if is_pos else "Questions to ask:"
+        color = "#00CC96" if is_pos else "#E1AD01"
+        st.markdown(f"""
+        <div class="checklist-row">
+            <span style="color: #C9D1D9;">{icon} Is {item['item']} strong?</span>
+            <span style="color: {color}; font-weight: 600;">{item['status']}</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.caption("Note: This checklist is for educational guidance only.")
 
-    with c3:
-        st.markdown('<div class="section-head">💵 Financial Health</div>', unsafe_allow_html=True)
-        fin = comp.get('dash_financials', {})
-        st.markdown(render_kv_tile("Revenue Trend", fin.get('Rev Trend', 'N/A')), unsafe_allow_html=True)
-        st.markdown(render_kv_tile("Profitability", fin.get('Profit Stability', 'N/A')), unsafe_allow_html=True)
-        st.markdown(render_kv_tile("Debt Comfort", fin.get('Debt Comfort', 'N/A')), unsafe_allow_html=True)
-
-        st.markdown('<div class="section-head">🔮 Outlook</div>', unsafe_allow_html=True)
-        out = comp.get('dash_outlook', {})
-        st.markdown(render_kv_tile("Primary Driver", out.get('Driver', 'N/A')), unsafe_allow_html=True)
-        st.markdown(render_kv_tile("Mgmt Quality", out.get('Management', 'N/A')), unsafe_allow_html=True)
-
-
-    # --- CHECKLIST TABLE ---
-    checklist_rows = ""
-    if 'checklist_expanded' in comp:
-        for item in comp['checklist_expanded']:
-            status_color = "#4caf50" if item['status'] in ['Yes', 'Strong', 'Wide'] else "#ffeb3b" if "Moderate" in item['status'] else "#ff5252"
-            checklist_rows += f'<div class="checklist-row"><span style="color:#ccc;">{item["item"]}</span><span style="color:{status_color}; font-weight:bold;">{item["status"]}</span><span style="color:#888; font-size:0.9em;">{item["detail"]}</span></div>'
-
-    st.markdown(f"""
-  <!-- SUITABILITY -->
-  <div style="background-color: #252A33; padding: 15px; border-radius: 8px; margin-top: 25px; border-left: 4px solid #00CC96;">
-      <div style="font-size: 0.85em; color: #00CC96; font-weight:bold; letter-spacing:1px; margin-bottom:5px;">INVESTOR SUITABILITY</div>
-      <div style="font-size: 1.05em; color: #fff;">{comp.get('suitability_detailed', comp['suitability'])}</div>
-  </div>
-
-  <!-- CHECKLIST -->
-  <div style="background-color: #262B33; padding: 20px; border-radius: 12px; margin-top: 25px; border: 1px solid #444;">
-    <div class="section-head" style="margin-top:0; border:none; padding-left:0;">✅ Decision Checklist</div>
-    <div style="margin-top:10px;">{checklist_rows}</div>
-  </div>
-
-  <!-- DISCLAIMER -->
-  <div style="background-color: #332b00; padding: 15px; border-radius: 8px; margin-top: 25px; font-size: 0.8em; color: #ffeb3b; text-align: center; border: 1px solid #ffcc00; line-height: 1.4;">
-    <strong>⚠️ DISCLAIMER:</strong> This analysis is for <strong>educational and academic purposes only</strong>. 
-    It does not constitute investment advice, stock recommendations, or solicitation. 
-    Market investments are subject to risk. Past performance is not indicative of future results.
-    Ref: SEBI/NISM Educational Standards.
-  </div>
-</div>
-""", unsafe_allow_html=True)
 

@@ -85,19 +85,46 @@ def get_recommended_videos(savings, salary):
 def display_investment_page():
     st.header("🎯 Personalized Investment & Growth")
     
-    if 'last_savings' not in st.session_state or 'last_salary' not in st.session_state:
+    # LOGIC FIX: Prioritize the exact "Projected Savings" from the Inflation Calculator results.
+    # This ensures the Investment page matches the "Safe/Green" banner in the calculator.
+    
+    savings = 0
+    salary = 0
+    data_source = "None"
+
+    if 'calc_results' in st.session_state:
+        res = st.session_state.calc_results
+        savings = res.get('savings_fut', 0)
+        salary = res.get('salary', 0)
+        data_source = "Calculator"
+    elif 'last_savings' in st.session_state and 'last_salary' in st.session_state:
+        # Fallback to dashboard state (Might be Current Savings, not Future)
+        savings = st.session_state['last_savings']
+        salary = st.session_state['last_salary']
+        data_source = "Dashboard"
+    else:
         st.warning("Please run the Inflation Calculator first to generate personalized insights.")
         return
         
-    savings = st.session_state['last_savings']
-    salary = st.session_state['last_salary']
-    
-    agree = st.checkbox("I verify that I understand this is for educational purposes only.")
-    if not agree:
-        st.info("⚠️ Please accept the disclaimer above.")
-        return
-
+    # Disclaimer Logic Upgrade
+    if 'disclaimer_accepted' not in st.session_state:
+        st.session_state.disclaimer_accepted = False
+        
+    if not st.session_state.disclaimer_accepted:
+        st.markdown("### ⚠️ Legal Disclaimer")
+        st.info("The investment strategies provided are generated based on general financial principles and your simulated data. They are for educational purposes only and do not constitute professional financial advice.")
+        
+        agree = st.checkbox("I verify that I understand this is for educational purposes only.")
+        
+        if st.button("Confirm & Proceed", type="primary", disabled=not agree):
+            st.session_state.disclaimer_accepted = True
+            st.rerun()
+        else:
+            st.stop() # Stop execution until confirmed
+            
+    # Content below only shows if disclaimer_accepted is True
     st.divider()
+    st.success("Disclaimer Accepted. Loading your personalized plan...")
 
     st.subheader(f"Financial State Analysis")
     st.markdown(f"**Projected Monthly Savings:** ₹{int(savings)}")
@@ -200,90 +227,158 @@ def show_recovery(savings):
         card("Career Growth", "Focus on increasing income.", "High Impact", "Invest time in skills", "Coursera / Udemy", "https://www.coursera.org/")
 
 # --- Insurance Page ---
+# --- Insurance Page ---
+# --- Insurance Page ---
 def display_insurance_page():
-    st.header("🛡️ Insurance & Risk Management")
-    st.caption("Risk management is the foundation of financial planning.")
+    # 1️⃣ Page Introduction
+    st.title("🛡️ Insurance & Risk Management")
+    st.info("Insurance protects your income, health, and family from unexpected risks. It is **not an investment**; it is a safety net.")
     
-    # Left / Right Split as requested
-    col_left, col_right = st.columns([1, 1.5])
+    # Layout Split
+    col_info, col_action = st.columns([1.5, 1])
     
-    with col_left:
-        st.subheader("📚 Insurance Types")
-        with st.container():
-            st.markdown("""
-            **1. Term Life Insurance**  
-            *Who:* Breadwinners with dependents.  
-            *What:* Pays lumpsum on death. Pure risk cover.
-            """)
-            st.markdown("---")
-            st.markdown("""
-            **2. Health Insurance**  
-            *Who:* Everyone.  
-            *What:* Covers hospitalization. Medical inflation > 10%.
-            """)
-            st.markdown("---")
-            st.markdown("""
-            **3. Motor Insurance**  
-            *Who:* Vehicle Owners.  
-            *What:* Mandatory 3rd party liability + Own damage.
-            """)
-            st.markdown("---")
-            st.markdown("""
-            **4. Critical Illness**  
-            *Who:* High risk of lifestyle diseases.  
-            *What:* Fixed payout on diagnosis.
-            """)
-
-    with col_right:
-        st.subheader("📋 Your Personalized Plan")
+    with col_action:
+        st.subheader("👤 Your Profile Check")
+        st.caption("This helps identify your protection needs.")
         
-        # Simple inputs for personalization
-        has_dependents = st.radio("Do you have financial dependents?", ["Yes", "No"], horizontal=True, key="ins_dep")
-        has_health_cover = st.radio("Do you have non-employer health insurance?", ["Yes", "No"], horizontal=True, key="ins_health")
+        # Inputs using native widgets
+        has_dependents = st.radio("Do you have financial dependents?", ["Yes", "No"], horizontal=True, key="ins_dep", help="Children, spouse, or parents who rely on your income.")
+        has_health_cover = st.radio("Do you have personal health insurance?", ["Yes", "No"], horizontal=True, key="ins_health", help="Employer cover doesn't count as personal cover.")
+        drive_vehicle = st.radio("Do you own a vehicle?", ["Yes", "No"], horizontal=True, key="ins_car")
         
         st.divider()
+
+        # 5️⃣ Risk vs Protection Visual (Native Metrics)
+        risk_level = "Low"
+        protection_status = "Good"
         
-        rec_count = 0
+        needs = []
+        if has_dependents == "Yes": 
+            needs.append("Term Life")
+            risk_level = "High" 
+        if has_health_cover == "No": 
+            needs.append("Health Policy")
+        if drive_vehicle == "Yes":
+           needs.append("Motor Insurance")
+           
+        if len(needs) > 0:
+            protection_status = "Needs Attention"
+            
+        # Using native metric for layout
+        m1, m2 = st.columns(2)
+        m1.metric("Financial Risk", risk_level)
+        m2.metric("Protection Status", protection_status, delta="-Gap" if len(needs)>0 else "Secure")
+        
+        st.divider()
+
+        # 4️⃣ Personalized Insurance Priority
+        st.subheader("🎯 Priority Focus")
+        
+        # Priority Logic displayed cleanly
         if has_dependents == "Yes":
-            rec_count += 1
-            st.markdown(f"""
-            <div style="border: 1px solid #EF553B; padding: 15px; border-radius: 8px; margin-bottom: 10px; background-color: #2D1B1B;">
-                <h4 style="margin:0; color: #EF553B;">Priority: Term Life Insurance</h4>
-                <p style="font-size:0.9em;">Reason: You have dependents who rely on your income.</p>
-                <p><strong>Proposed Cover:</strong> 15 - 20x Annual Income</p>
-                <a href="https://www.policybazaar.com/term-insurance/" target="_blank">Compare Term Plans</a>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        if has_health_cover == "No":
-            rec_count += 1
-            st.markdown(f"""
-            <div style="border: 1px solid #FFA15A; padding: 15px; border-radius: 8px; margin-bottom: 10px; background-color: #2D251B;">
-                <h4 style="margin:0; color: #FFA15A;">Priority: Health Insurance</h4>
-                <p style="font-size:0.9em;">Reason: Employer cover is tied to your job. You need personal cover.</p>
-                <p><strong>Proposed Cover:</strong> ₹5 - ₹10 Lakhs Base</p>
-                <a href="https://www.starhealth.in/" target="_blank">View Health Plans</a> | <a href="https://www.acko.com/" target="_blank">Acko</a>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        if rec_count == 0:
-            st.success("✅ You have covered the basics! Consider Top-up Health or Accidental Disability covers.")
-            
-        with st.expander("📞 Request Advisor Callback", expanded=True):
+            with st.container(border=True):
+                st.error("🚨 **Priority: Term Life Insurance**")
+                st.write("**Why:** Your family relies on your income.")
+                st.write("**Goal:** 15-20x Annual Income.")
+        elif has_health_cover == "No":
+            with st.container(border=True):
+                st.warning("🩺 **Priority: Health Insurance**")
+                st.write("**Why:** Medical costs can wipe out savings.")
+                st.write("**Goal:** ₹5-10L Base Cover.")
+        elif drive_vehicle == "Yes":
+            with st.container(border=True):
+                st.info("🚗 **Action:** Check Motor Insurance Expiry.")
+                st.write("**Why:** Mandatory by law.")
+        else:
+            st.success("✅ **You are well covered!** Consider Critical Illness cover as a top-up.")
+
+        # 7️⃣ Advisor Call Section
+        with st.expander("💬 Need help? Request a Callback"):
             with st.form("callback_form_rec"):
-                st.write("Get a call from a verified policy advisor.")
-                i_name = st.selectbox("Topic", ["Term Insurance", "Health Insurance", "Portfolio Review"])
-                submitted = st.form_submit_button("Request Call Now")
+                st.caption("Get free clarification from a verified advisor.")
+                i_name = st.selectbox("Topic", ["Term Life", "Health Insurance", "Claims Process"])
+                submitted = st.form_submit_button("Request Support Call")
                 if submitted:
                     if 'user_id' in st.session_state and st.session_state.user_id:
                         try:
                             pl = {"user_id": st.session_state.user_id, "insurer_name": i_name}
                             res = requests.post(f"{API_BASE}/data/callback", json=pl)
                             if res.status_code == 201:
-                                st.success("Request sent! Reference ID saved.")
+                                st.success("Request sent successfully.")
                             else:
-                                st.error("Failed to send request.")
+                                st.error("Could not send request.")
                         except:
-                            st.error("Connection failed.")
+                            st.error("Connection error.")
                     else:
                         st.error("Please login first.")
+
+    with col_info:
+        st.markdown("### 📚 Insurance Guide")
+        st.markdown("""
+        <div style="margin-top: -15px; margin-bottom: 20px; color: #8B949E; font-size: 0.9rem;">
+            Standard covers everyone should understand.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Helper to render clean native cards
+        def render_native_card(title, who, why, when, is_rec):
+            # Using st.container with border for the card look
+            with st.container(border=True):
+                # Header Row
+                c_head, c_badge = st.columns([0.7, 0.3])
+                with c_head:
+                    st.markdown(f"**{title}**")
+                with c_badge:
+                    if is_rec:
+                        st.markdown(":green[**Recommended**] 💡")
+                    else:
+                        st.markdown(":grey[**Optional**] ℹ️")
+                
+                # Body Grid
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    st.caption("👤 WHO NEEDS IT")
+                    st.write(who)
+                with c2:
+                    st.caption("🛡️ WHY IT MATTERS")
+                    st.write(why)
+                with c3:
+                    st.caption("🕒 WHEN TO BUY")
+                    st.write(when)
+
+        # 2️⃣ Insurance Types Cards
+        
+        render_native_card(
+            "Term Life Insurance", 
+            "Breadwinners with dependents.", 
+            "Replaces income on death.", 
+            "When you have dependents.",
+            is_rec=(has_dependents == "Yes")
+        )
+        
+        render_native_card(
+            "Health Insurance", 
+            "Everyone. (Self + Family).", 
+            "Protects savings from bills.", 
+            "Before you get sick / Age > 25.",
+            is_rec=(has_health_cover == "No")
+        )
+        
+        render_native_card(
+            "Motor Insurance", 
+            "Every vehicle owner.", 
+            "Pays for accidents/damages.", 
+            "Before driving on roads.",
+            is_rec=(drive_vehicle == "Yes")
+        )
+        
+        render_native_card(
+            "Critical Illness Cover", 
+            "High stress / Family history.", 
+            "Lumpsum cash for recovery.", 
+            "With active health policy.",
+            is_rec=False 
+        )
+        
+        # 6️⃣ Beginner Info Box
+        st.info("💡 **Tip:** Term plans (Pure Protection) are cheaper and better than Endowment (Animation/Savings) plans.")

@@ -5,8 +5,8 @@ import os
 
 
 
-# FORCE USE RENDER URL
-API_URL = "https://hiei.onrender.com"
+# DEFAULT TO LOCAL URL FOR DEV
+API_URL = "http://127.0.0.1:5000"
 
 
 

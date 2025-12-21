@@ -44,6 +44,7 @@ def get_user_history(user_id):
     history = UserFinancials.query.filter_by(user_id=user_id).order_by(UserFinancials.created_at.desc()).all()
     result = [{
         "date": r.created_at.strftime("%Y-%m-%d"),
+        "salary": r.salary,
         "total_spend": r.total_spend,
         "future_total_spend": r.future_total_spend,
         "salary_status": r.salary_status,

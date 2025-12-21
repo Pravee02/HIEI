@@ -136,170 +136,190 @@ def display_user_dashboard():
             history_count = len(history_data)
             if history_count > 0:
                 sim_status = "Active"
+                
     except:
         pass
 
-    # Determine Readiness
-    readiness = "Neutral 😐"
-    readiness_desc = "Not enough data to analyze."
-    readiness_color = "#8B949E" # Grey
+    # NEW: Fallback or Sync logic to ensure we have data for display
+    # If session is empty but we have history, use the latest history item
+    # We also need these variables even if not 0, so let's check latest history always if available?
+    # Actually, let's prioritize history for the dashboard display to be accurate to "Last Analysis"
     
-    if last_salary > 0:
-        savings_rate = last_savings / last_salary
-        if savings_rate < 0:
-            readiness = "Alert ⚠️"
-            readiness_desc = "Spending exceeds income."
-            readiness_color = "#EF553B" # Red
-        elif savings_rate > 0.2:
-            readiness = "Stable 🛡️"
-            readiness_desc = "Healthy savings buffer."
-            readiness_color = "#00CC96" # Green
-        else:
-             readiness = "Caution ⚠️"
-             readiness_desc = "Savings are low."
-             readiness_color = "#E1AD01" # Orange
-    elif history_count > 0:
-         readiness = "Review Needed 📝"
-         readiness_desc = "Update your inputs."
+    last_salary = 0
+    total_spend = 0
+    most_affected = "—"
+    
+    if history_count > 0:
+        latest = history_data[0]
+        last_salary = latest.get('salary', 0)
+        total_spend = latest.get('total_spend', 0)
+        most_affected = latest.get('most_affected', '—')
+        if most_affected == "Stable": most_affected = "None"
+        
+        # Sync session state just in case calculator needs it (though calculator overwrites usually)
+        st.session_state['last_salary'] = last_salary
+        if total_spend > 0:
+             st.session_state['last_savings'] = last_salary - total_spend
 
-    # Display Metrics Row
-    c1, c2, c3, c4 = st.columns(4)
+    # Fallback: If no history (or salary 0), check if user just ran the calculator in this session
+    if last_salary == 0 and 'calc_results' in st.session_state:
+        res = st.session_state.calc_results
+        last_salary = res.get('salary', 0)
+        if total_spend == 0:
+            total_spend = res.get('total_now', 0)
+        # Note: We don't have 'most_affected' easily available in simple calc_results unless we re-derive it, 
+        # but the prompt specifically asked for Income/Spend. 
+        # Actually calculator does calculate 'most_affected' but doesn't pass it in 'calc_results' explicitly as a simple string always?
+        # Let's check calculator.py... it saves 'r_food' etc. 
+        # Ideally we stick to the main request: Fix Monthly Income.
+
+
+    # Display Metrics Row (3 Cards as requested)
+    c1, c2, c3 = st.columns(3)
     
+    # CARD 1: Monthly Income
     with c1:
+        if last_salary > 0:
+            val_text = f"₹{int(last_salary):,}"
+            sub_text = "Based on your last input in the Inflation Calculator"
+            val_color = "#FAFAFA"
+        else:
+            val_text = "—"
+            sub_text = "Based on your last input in the Inflation Calculator"
+            val_color = "#8B949E"
+
         st.markdown(f"""
             <div class="metric-card">
                 <div class="metric-label">Monthly Income</div>
-                <div class="metric-value">{'₹' + str(int(last_salary)) if last_salary > 0 else '—'}</div>
-                <div class="metric-sub">Based on your last input</div>
+                <div class="metric-value" style="color: {val_color}; font-size: 1.6rem;">{val_text}</div>
+                <div class="metric-sub">{sub_text}</div>
             </div>
         """, unsafe_allow_html=True)
     
+    # CARD 2: Monthly Total Spending
     with c2:
-        # Spending is roughly Salary - Savings
-        estimated_spending = last_salary - last_savings if last_salary > 0 else 0
-        st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-label">Est. Monthly Spend</div>
-                <div class="metric-value">{'₹' + str(int(estimated_spending)) if last_salary > 0 else '—'}</div>
-                <div class="metric-sub">Projected household expense</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-
-    with c3:
-        # Improved Simulation Status
-        if history_count > 0:
-            val_text = f"{history_count}"
-            sub_text = "Total simulations run"
-            val_style = ""
+        if total_spend > 0:
+            val_text = f"₹{int(total_spend):,}"
+            sub_text = "Combined household expenses per month"
+            val_color = "#FAFAFA"
         else:
-            val_text = "No simulations"
-            sub_text = "Run calculator to start"
-            val_style = "font-size: 1.2rem; color: #8B949E;"
-            
+            val_text = "—"
+            sub_text = "Combined household expenses per month"
+            val_color = "#8B949E"
+
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-label">Analysis History</div>
-                <div class="metric-value" style="{val_style}">{val_text}</div>
+                <div class="metric-label">Monthly Total Spending</div>
+                <div class="metric-value" style="color: {val_color}; font-size: 1.6rem;">{val_text}</div>
                 <div class="metric-sub">{sub_text}</div>
             </div>
         """, unsafe_allow_html=True)
 
 
-    with c4:
+    # CARD 3: Most Affected Expense
+    with c3:
+        if most_affected and most_affected != "—" and most_affected != "None":
+            val_text = most_affected
+            sub_text = "Based on latest inflation analysis"
+            val_color = "#EF553B" # Highlight color for impact
+        else:
+            val_text = "—"
+            sub_text = "Based on latest inflation analysis"
+            val_color = "#8B949E"
+            
         st.markdown(f"""
-            <div class="metric-card" style="border-bottom: 3px solid {readiness_color};">
-                <div class="metric-label">Financial Readiness</div>
-                <div class="metric-value" style="font-size: 1.4rem; color:{readiness_color}">{readiness}</div>
-                <div class="metric-sub">{readiness_desc}</div>
+            <div class="metric-card">
+                <div class="metric-label">Most Affected Expense</div>
+                <div class="metric-value" style="color: {val_color}; font-size: 1.6rem;">{val_text}</div>
+                <div class="metric-sub">{sub_text}</div>
             </div>
         """, unsafe_allow_html=True)
-
+    
     st.markdown("---")
 
-    # 3️⃣ Inflation Simulation Activity Panel
-    st.subheader("📊 Recent Activity")
-    col_activity, col_actions = st.columns([2, 1])
+    # 3️⃣ High Tech Command Center (Replaces Empty Activity)
     
-    with col_activity:
-        if history_count > 0:
-            t1, t2 = st.columns([3, 1])
-            t1.caption("Showing your latest inflation impact calculations.")
+    # If we have history, show it. If not, don't show "Empty", just show Controls.
+    if history_count > 0:
+         st.subheader("📊 Inflation Analytics Log")
+         
+         # Show clean dataframe
+         df = pd.DataFrame(history_data)
+         # Map backend keys to display columns
+         # Keys from data_routes: date, salary, total_spend, future_total_spend, salary_status, most_affected
+         
+         # Just rename them directly
+         if not df.empty:
+            df_show = df.rename(columns={
+                'date': 'Date',
+                'salary': 'Income',
+                'total_spend': 'Expenses',
+                'future_total_spend': 'Projected',
+                'salary_status': 'Status',
+                'most_affected': 'Impact'
+            })
             
-            # Show strictly relevant columns to keep it clean
-            df = pd.DataFrame(history_data)
-            # Rename for display if columns exist
-            display_cols = ['timestamp', 'monthly_income', 'total_expenses', 'inflation_rate']
-            final_cols = [c for c in display_cols if c in df.columns]
+            # Select relevant columns
+            cols_to_show = ['Date', 'Income', 'Expenses', 'Projected', 'Status']
+            # Filter if they exist
+            final_show = df_show[[c for c in cols_to_show if c in df_show.columns]]
+
+            st.dataframe(
+                final_show.style.format({"Income": "₹{:.0f}", "Expenses": "₹{:.0f}", "Projected": "₹{:.0f}"}, na_rep="-"),
+                use_container_width=True,
+                height=250,
+                hide_index=True
+            )
+         else:
+            st.info("No data available.")
+         
+         st.markdown("---")
+
+    # 4️⃣ Command Center Actions (Functional)
+    st.subheader("🚀 Quick Actions")
+    
+    # Custom CSS for buttons to make them look larger/techy
+    st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        background-color: #21262D;
+        color: #58A6FF;
+        border: 1px solid #30363D;
+        height: 80px;
+        width: 100%;
+        font-size: 18px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #292E36;
+        border-color: #58A6FF;
+        transform: translateY(-2px);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    ac1, ac2, ac3, ac4 = st.columns(4)
+    
+    with ac1:
+        if st.button("➕ Calculator", use_container_width=True):
+            st.session_state.current_page = "Inflation Calculator"
+            st.rerun()
             
-            if final_cols:
-                # Rename columns for friendly display
-                df_show = df[final_cols].rename(columns={
-                    'timestamp': 'Date',
-                    'monthly_income': 'Income', 
-                    'total_expenses': 'Expenses', 
-                    'inflation_rate': 'Inf. Rate'
-                })
-                st.dataframe(
-                    df_show.style.format({"Income": "₹{:.0f}", "Expenses": "₹{:.0f}", "Inf. Rate": "{:.1f}%"}),
-                    use_container_width=True,
-                    height=250,
-                    hide_index=True
-                )
-            else:
-                st.dataframe(df, use_container_width=True, height=250)
-        else:
-            # Enhanced Empty State
-            st.markdown("""
-                <div class="empty-state-panel">
-                    <div class="empty-state-title">You haven’t analyzed inflation yet</div>
-                    <p class="empty-state-text">Start with the Inflation Calculator to see how future price rises will affect your specific household budget.</p>
-                </div>
-            """, unsafe_allow_html=True)
-
-    # 4️⃣ Action Shortcuts Section
-    with col_actions:
-        # Note: In Streamlit, buttons rerun the script. Visual cues only.
-        
-        g1, g2 = st.columns(2)
-        with g1:
-            st.markdown("""
-            <div class="action-tile">
-                <div class="action-icon">➕</div>
-                <div class="action-title">Calculator</div>
-                <div class="action-desc">Analyze future impact</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with g2:
-             st.markdown("""
-            <div class="action-tile">
-                <div class="action-icon">🏢</div>
-                <div class="action-title">Analysis</div>
-                <div class="action-desc">Check companies</div>
-            </div>
-            """, unsafe_allow_html=True)
+    with ac2:
+        if st.button("🏢 Analysis", use_container_width=True):
+            st.session_state.current_page = "Company Analysis"
+            st.rerun()
             
-        st.markdown("") # Spacer
-
-        g3, g4 = st.columns(2)
-        with g3:
-             st.markdown("""
-            <div class="action-tile">
-                <div class="action-icon">📉</div>
-                <div class="action-title">Dashboard</div>
-                <div class="action-desc">Forecast trends</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with g4:
-             st.markdown("""
-            <div class="action-tile">
-                <div class="action-icon">🛡️</div>
-                <div class="action-title">Insurance</div>
-                <div class="action-desc">Review coverage</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.caption("Select from the sidebar to access.")
+    with ac3:
+        if st.button("📉 Dashboard", use_container_width=True):
+            st.session_state.current_page = "Inflation Dashboard"
+            st.rerun()
+            
+    with ac4:
+        if st.button("🛡️ Insurance", use_container_width=True):
+            st.session_state.current_page = "Insurance Information"
+            st.rerun()
 
     # 5️⃣ Educational Insight Strip
     st.markdown("""

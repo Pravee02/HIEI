@@ -35,7 +35,10 @@ def main():
     if st.session_state.user_token:
         # USER MODE
         st.sidebar.success(f"User: {st.session_state.get('username')}")
-        menu = st.sidebar.radio("Menu", [
+        if "current_page" not in st.session_state:
+            st.session_state.current_page = "User Dashboard"
+
+        nav_options = [
             "User Dashboard",
             "Inflation Calculator",
             "Inflation Dashboard",
@@ -43,7 +46,19 @@ def main():
             "Company Analysis",
             "Insurance Information",
             "Logout"
-        ])
+        ]
+        
+        try:
+            nav_index = nav_options.index(st.session_state.current_page)
+        except:
+            nav_index = 0
+
+        # Sync state with sidebar
+        menu = st.sidebar.radio("Menu", nav_options, index=nav_index)
+        
+        if menu != st.session_state.current_page:
+            st.session_state.current_page = menu
+            st.rerun()
         
         if menu == "User Dashboard":
             display_user_dashboard()
