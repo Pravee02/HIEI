@@ -9,25 +9,49 @@ from utils.api import API_URL
 API_BASE = f"{API_URL}/api"
 
 def display_calculator():
-    st.header("Inflation Calculator & Planner")
-    
-    # 1. Inputs
-    col1, col2 = st.columns(2)
-    with col1:
-        salary = st.number_input("Monthly Salary (₹)", min_value=0.0, value=50000.0)
-        extra_fixed = st.number_input("EMI / Other Fixed Spending", min_value=0.0, value=15000.0)
-        group = st.selectbox("Household Group", ["Urban Poor", "Urban Rich", "Rural Poor", "Rural Rich"])
-        
-    with col2:
-        food_spend = st.number_input("Food Spending (₹)", min_value=0.0, value=8000.0)
-        fuel_spend = st.number_input("Fuel/Transport Spending (₹)", min_value=0.0, value=3000.0)
-        health_spend = st.number_input("Healthcare Spending (₹)", min_value=0.0, value=2000.0)
+    # Load CSS
+    import os
+    css_path = os.path.join(os.path.dirname(__file__), '../assets/style.css')
+    try:
+        with open(css_path) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except:
+        pass
 
-    # Date Input
+    # --- HERO SECTION ---
+    st.markdown("""
+        <div style="margin-bottom: 2rem;">
+            <h1 style="margin-bottom: 0.5rem; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Inflation Calculator & Planner</h1>
+            <p style="color: #94a3b8; font-size: 1.1rem;">Smulate future inflation impact on your personal household budget and plan ahead.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # --- INPUT SECTION (CARDS) ---
+    c_left, c_right = st.columns(2)
+    
+    with c_left:
+        st.markdown('<div class="calc-card"><h4>💰 Income & Fixed Expenses</h4>', unsafe_allow_html=True)
+        salary = st.number_input("Monthly Salary (₹)", min_value=0.0, value=50000.0, step=1000.0)
+        extra_fixed = st.number_input("EMI / Other Fixed Spending (₹)", min_value=0.0, value=15000.0, step=500.0)
+        group = st.selectbox("Household Group", ["Urban Poor", "Urban Rich", "Rural Poor", "Rural Rich"])
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with c_right:
+        st.markdown('<div class="calc-card"><h4>🛒 Variable Expenses (Monthly)</h4>', unsafe_allow_html=True)
+        food_spend = st.number_input("Food Spending (₹)", min_value=0.0, value=8000.0, step=500.0)
+        fuel_spend = st.number_input("Fuel/Transport Spending (₹)", min_value=0.0, value=3000.0, step=500.0)
+        health_spend = st.number_input("Healthcare Spending (₹)", min_value=0.0, value=2000.0, step=500.0)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Date Input & Action
+    st.markdown('<div class="section-header-calc">📅 Prediction Parameters</div>', unsafe_allow_html=True)
+    
+    # Clean slider layout
     start_date = st.date_input("Spending Date (Predict from)", value=datetime.today())
     period_months = st.select_slider("Select Prediction Period (Months)", options=[1, 3, 6, 12, 24, 60], value=12)
     
-    if st.button("Calculate Impact"):
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Calculate Impact", type="primary", use_container_width=True):
         # Fetch Forecast Data
         try:
             res = requests.get(f"{API_BASE}/inflation/forecast")
@@ -111,73 +135,111 @@ def display_calculator():
     if 'calc_results' in st.session_state:
         res = st.session_state.calc_results
         
-        # Display
-        st.divider()
-        st.subheader(f"Results for {res['period_months']} Months Forecast")
+        # Display Dashboard
+        st.markdown(f'<div class="section-header-calc">📊 Forecast Results ({res["period_months"]} Months)</div>', unsafe_allow_html=True)
         
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Food Inflation", f"{res['r_food']:.2f}%", f"₹{int(res['f_food'])}")
-        c2.metric("Fuel Inflation", f"{res['r_fuel']:.2f}%", f"₹{int(res['f_fuel'])}")
-        c3.metric("Health Inflation", f"{res['r_health']:.2f}%", f"₹{int(res['f_health'])}")
-        c4.metric("Extra Cost", f"₹{int(res['extra_cost'])}", delta_color="inverse")
+        c1.metric("Food Inflation", f"{res['r_food']:.1f}%", f"+ ₹{int(res['f_food'] - res['food_spend'])}")
+        c2.metric("Fuel Inflation", f"{res['r_fuel']:.1f}%", f"+ ₹{int(res['f_fuel'] - res['fuel_spend'])}")
+        c3.metric("Health Inflation", f"{res['r_health']:.1f}%", f"+ ₹{int(res['f_health'] - res['health_spend'])}")
+        c4.metric("Extra Monthly cost", f"₹{int(res['extra_cost'])}", delta_color="inverse")
         
-        st.write(f"**Total Future Monthly Spending:** ₹{int(res['total_fut'])}")
+        st.markdown("<br>", unsafe_allow_html=True)
         
+        # Savings Status Banner
         salary_status = "Unknown"
         if res['savings_fut'] < 0:
             salary_status = "DEFICIT"
-            st.error(f"⚠️ DANGER: You will be in debt by ₹{abs(int(res['savings_fut']))}/month!")
+            banner_class = "danger"
+            banner_icon = "🚨"
+            banner_msg = f"CRITICAL: You will be in DEBT by ₹{abs(int(res['savings_fut']))}/month!"
         elif res['savings_fut'] < 0.1 * res['salary']:
             salary_status = "AT RISK"
-            st.warning(f"⚠️ Warning: Savings will drop to low levels (₹{int(res['savings_fut'])})")
+            banner_class = "risk"
+            banner_icon = "⚠️"
+            banner_msg = f"WARNING: Savings dropping to critical levels (₹{int(res['savings_fut'])})"
         else:
             salary_status = "SURPLUS"
-            st.success(f"✅ Safe: Projected Savings ₹{int(res['savings_fut'])}")
+            banner_class = "safe"
+            banner_icon = "✅"
+            banner_msg = f"SAFE: Projected Savings ₹{int(res['savings_fut'])}"
+            
+        st.markdown(f"""
+            <div class="savings-banner {banner_class}">
+                <div style="font-size: 1.5rem;">{banner_icon}</div>
+                <div>{banner_msg}</div>
+            </div>
+        """, unsafe_allow_html=True)
             
         # Visualize
-        chart_data = pd.DataFrame({
-            "Category": ["Food", "Fuel", "Health", "Fixed"],
-            "Now": [res['food_spend'], res['fuel_spend'], res['health_spend'], res['extra_fixed']],
-            "Future": [res['f_food'], res['f_fuel'], res['f_health'], res['extra_fixed']]
-        })
-        df_melt = chart_data.melt("Category", var_name="Time", value_name="Cost")
-        fig = px.bar(df_melt, x="Category", y="Cost", color="Time", barmode="group",
-                     color_discrete_sequence=["#00CC96", "#EF553B"])
-        st.plotly_chart(fig, use_container_width=True)
+        c_chart, c_details = st.columns([2, 1])
         
-        # Determine Most Affected
-        item_increases = {
-            "Food": res['f_food'] - res['food_spend'],
-            "Fuel": res['f_fuel'] - res['fuel_spend'],
-            "Healthcare": res['f_health'] - res['health_spend']
-        }
-        most_affected = max(item_increases, key=item_increases.get) if max(item_increases.values()) > 0 else "None"
+        with c_chart:
+            st.markdown("##### Spending Comparison")
+            chart_data = pd.DataFrame({
+                "Category": ["Food", "Fuel", "Health", "Fixed"],
+                "Now": [res['food_spend'], res['fuel_spend'], res['health_spend'], res['extra_fixed']],
+                "Future": [res['f_food'], res['f_fuel'], res['f_health'], res['extra_fixed']]
+            })
+            df_melt = chart_data.melt("Category", var_name="Time", value_name="Cost")
+            fig = px.bar(df_melt, x="Category", y="Cost", color="Time", barmode="group",
+                         color_discrete_sequence=["#2dd4bf", "#f43f5e"]) # Teal vs Red
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#cbd5e1")
+            st.plotly_chart(fig, use_container_width=True)
         
-        # Save Button (Now outside the main button logic)
-        if st.button("Save & Return to Dashboard"):
-            payload = {
-                "user_id": st.session_state.user_id,
-                "salary": res['salary'],
-                "food": res['food_spend'],
-                "fuel": res['fuel_spend'],
-                "health": res['health_spend'],
-                "extra_spend": res['extra_fixed'],
-                "total_spend": res['total_now'],
-                "future_total_spend": res['total_fut'],
-                "salary_status": salary_status,
-                "most_affected_category": most_affected
-            }
-            success = False
-            try:
-                s_res = requests.post(f"{API_BASE}/data/spending", json=payload)
-                if s_res.status_code == 201:
-                    success = True
-                else:
-                    st.error("Failed to save.")
-            except Exception as e:
-                st.error(f"Connection failed: {e}")
-            
-            if success:
-                 st.success("Data Saved to Profile!")
-                 st.session_state.current_page = "User Dashboard"
-                 st.rerun()
+        with c_details:
+             st.markdown("##### Quick Summary")
+             st.markdown(f"""
+                <div style="background: #1e293b; padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                        <span style="color:#94a3b8">Current Total:</span>
+                        <span style="font-weight:600">₹{int(res['total_now'])}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                        <span style="color:#94a3b8">Future Total:</span>
+                        <span style="font-weight:600; color:#f43f5e">₹{int(res['total_fut'])}</span>
+                    </div>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#94a3b8">Net Impact:</span>
+                        <span style="font-weight:600; color:#f43f5e">+ ₹{int(res['extra_cost'])}</span>
+                    </div>
+                </div>
+             """, unsafe_allow_html=True)
+             
+             st.markdown("<br>", unsafe_allow_html=True)
+             
+             # Determine Most Affected
+             item_increases = {
+                "Food": res['f_food'] - res['food_spend'],
+                "Fuel": res['f_fuel'] - res['fuel_spend'],
+                "Healthcare": res['f_health'] - res['health_spend']
+             }
+             most_affected = max(item_increases, key=item_increases.get) if max(item_increases.values()) > 0 else "None"
+             
+             if st.button("Save Logic to Profile", use_container_width=True):
+                 if 'user_id' not in st.session_state:
+                     st.error("Please login to save.")
+                 else:
+                    payload = {
+                        "user_id": st.session_state.user_id,
+                        "salary": res['salary'],
+                        "food": res['food_spend'],
+                        "fuel": res['fuel_spend'],
+                        "health": res['health_spend'],
+                        "extra_spend": res['extra_fixed'],
+                        "total_spend": res['total_now'],
+                        "future_total_spend": res['total_fut'],
+                        "salary_status": salary_status,
+                        "most_affected_category": most_affected
+                    }
+                    try:
+                        s_res = requests.post(f"{API_BASE}/data/spending", json=payload)
+                        if s_res.status_code == 201:
+                            st.success("Data Saved!")
+                            st.session_state.current_page = "User Dashboard"
+                            st.rerun()
+                        else:
+                            st.error("Failed to save.")
+                    except Exception as e:
+                        st.error(f"Connection error: {e}")
