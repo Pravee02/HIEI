@@ -1,0 +1,422 @@
+/* HIEI Professional Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+html,
+body,
+[class*="css"] {
+    font-family: 'Inter', sans-serif;
+    color: #FAFAFA;
+}
+
+/* --- Hero Section --- */
+.hero-container {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 4rem 2rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 3rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-image: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 20%);
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+}
+
+.hero-divider {
+    height: 4px;
+    width: 80px;
+    background: #38bdf8;
+    margin: 0 auto 1.5rem auto;
+    border-radius: 2px;
+}
+
+/* --- Role Cards --- */
+.role-card-container {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 2rem;
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.role-card-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    border-color: #38bdf8;
+}
+
+.role-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #38bdf8;
+}
+
+.role-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 0.8rem;
+}
+
+.role-desc {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Feature Grid --- */
+.feature-card {
+    background: #0f172a;
+    border-left: 4px solid #38bdf8;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: all 0.2s;
+}
+
+.feature-card:hover {
+    background: #1e293b;
+    padding-left: 2rem;
+}
+
+.feature-title {
+    font-weight: 600;
+    color: #f1f5f9;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.feature-text {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+/* --- Highlights Horizontal Strip --- */
+.highlights-strip {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 3rem 0;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.highlight-item {
+    text-align: center;
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+/* --- Footer --- */
+.footer {
+    border-top: 1px solid #1e293b;
+    padding-top: 2rem;
+    margin-top: 4rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+/* --- Professional Button Styling --- */
+div.stButton>button {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    width: 100%;
+}
+
+/* Primary Button (Login) - Blue/Teal Gradient */
+div.stButton>button[kind="primary"],
+div.stButton>button[data-testid="baseButton-primary"] {
+    background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
+    border: none;
+}
+
+div.stButton>button[kind="primary"]:hover,
+div.stButton>button[data-testid="baseButton-primary"]:hover {
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.6);
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    color: white;
+}
+
+/* Secondary Button (Register) - Outline Style */
+div.stButton>button[kind="secondary"],
+div.stButton>button[data-testid="baseButton-secondary"] {
+    background: transparent;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+}
+
+div.stButton>button[kind="secondary"]:hover,
+div.stButton>button[data-testid="baseButton-secondary"]:hover {
+    border-color: #38bdf8;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    transform: translateY(-2px);
+}
+
+/* --- Calculator & Planner Professional Styles --- */
+
+/* Input Group Card */
+.calc-card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.calc-card h4 {
+    color: #e2e8f0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+}
+
+/* Stat Cards for Results */
+div[data-testid="stMetric"] {
+    background: #0f172a;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+div[data-testid="stMetric"]:hover {
+    transform: translateY(-2px);
+    border-color: #38bdf8;
+}
+
+div[data-testid="stMetricLabel"] {
+    color: #94a3b8 !important;
+    font-size: 0.9rem !important;
+}
+
+div[data-testid="stMetricValue"] {
+    color: #f1f5f9 !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+}
+
+div[data-testid="stMetricDelta"] svg {
+    display: none;
+    /* Hide default delta arrow if preferred, or categorize colors */
+}
+
+/* Savings Banner */
+.savings-banner {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    border-left: 5px solid;
+}
+
+.savings-banner.safe {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+    color: #34d399;
+}
+
+.savings-banner.risk {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #f59e0b;
+    color: #fbbf24;
+}
+
+.savings-banner.danger {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #f87171;
+}
+
+/* Section Header */
+.section-header-calc {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+    border-left: 4px solid #38bdf8;
+    color: #e2e8f0;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+/* --- Authentication Pages --- */
+.auth-container {
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 2.5rem;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.auth-header p {
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+.secure-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+    display: block;
+    text-align: center;
+}
+
+/* --- Policy Maker Dashboard --- */
+
+.policy-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 3rem 2rem;
+    border-radius: 16px;
+    border-left: 6px solid #38bdf8;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.policy-hero::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: radial-gradient(circle at 90% 10%, rgba(56, 189, 248, 0.1), transparent 40%);
+    pointer-events: none;
+}
+
+.policy-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 0.5rem;
+}
+
+.policy-subtitle {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    font-weight: 300;
+}
+
+/* Stat Cards */
+.stat-box {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.stat-box:hover {
+    transform: translateY(-5px);
+    border-color: #38bdf8;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #38bdf8;
+    margin: 0.5rem 0;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Action Cards */
+.action-box {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.action-box:hover {
+    background: #1e293b;
+    border-color: #818cf8;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.action-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #818cf8;
+}
+
+.action-title {
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 0.5rem;
+}
+
+.action-desc {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
